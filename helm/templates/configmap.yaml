@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+data:
+  fluent.conf: |
+    <system>
+      log_level info
+    </system>
+    
+    <source>
+      @type tail
+      path /var/log/containers/log*.log, /var/log/containers/trigger*.log
+      pos_file /var/log/fluentd/containers.log.pos
+      tag containers.*
+      format none
+      keep_time_key true
+    </source>
+
+    <filter **>
+      @type kubernetes_metadata
+    </filter>
+    
+    
+    <filter **>
+      @type parser
+      key_name message
+      reserve_data true
+      <parse>
+        @type regexp
+        expression /^(?<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{9}\+\d{2}:\d{2}) (?<stream>stdout|stderr) F (?<log_timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?<log_level>[A-Z]+) - (?<log_message>.*)$/
+      </parse>
+    </filter>
+    
+    <filter **>
+      @type record_transformer
+      enable_ruby
+      <record>
+        host ${record.dig('kubernetes', 'host')}
+        namespace ${record.dig('kubernetes', 'namespace_name')}
+        app ${record.dig('kubernetes', 'labels', 'app')}
+        stream ${record['stream']}
+        pod_name ${record.dig('kubernetes', 'pod_name')}
+        log_level ${record['log_level']}
+        log_message ${record['log_message']}
+      </record>
+    </filter>
+    
+    <match **>
+      @type elasticsearch
+      host "#{ENV['ES_HOST']}"
+      port 9200
+      user "#{ENV['ES_USERNAME']}"
+      password "#{ENV['ES_PASSWORD']}"
+      logstash_format false
+      buffer_chunk_limit 2M
+      buffer_queue_limit 8
+      flush_interval 5s
+      max_retry_wait 30
+      disable_retry_limit
+      num_threads 4
+      index_name "#{ENV['ES_INDEX']}"
+    </match>

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: fluentd
+description: A Helm chart for Fluentd log forwarding
+version: 1.0.0

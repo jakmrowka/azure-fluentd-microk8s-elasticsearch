@@ -1,0 +1,19 @@
+image:
+  repository: fluent/fluentd-kubernetes-daemonset
+  tag: v1.16.3-debian-elasticsearch8-amd64-2.0
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
+
+config:
+  ES_INDEX: "#{es_index}#"
+
+secrets:
+  ES_USERNAME: "#{es-username}#"
+  ES_PASSWORD: "#{es-password}#"
+  ES_HOST: "#{es_url}#"
