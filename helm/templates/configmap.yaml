@@ -34,6 +34,7 @@ data:
     
     <filter **>
       @type record_transformer
+      reserve_data true
       enable_ruby
       <record>
         host ${record.dig('kubernetes', 'host')}
@@ -56,7 +57,7 @@ data:
       buffer_chunk_limit 2M
       buffer_queue_limit 8
       flush_interval 5s
-      max_retry_wait 30
+      max_retry_wait 90
       disable_retry_limit
       num_threads 4
       index_name "#{ENV['ES_INDEX']}"
