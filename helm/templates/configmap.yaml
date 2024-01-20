@@ -54,11 +54,15 @@ data:
       user "#{ENV['ES_USERNAME']}"
       password "#{ENV['ES_PASSWORD']}"
       logstash_format false
-      buffer_chunk_limit 2M
-      buffer_queue_limit 8
-      flush_interval 5s
-      max_retry_wait 90
-      disable_retry_limit
+      <buffer>
+        @type file
+        path /var/log/fluentd/buffer
+        chunk_limit_size 8M
+        queue_limit_length 16
+        flush_interval 5s
+        retry_max_interval 60s
+        overflow_action block
+      </buffer>
       num_threads 4
       index_name "#{ENV['ES_INDEX']}"
     </match>
